@@ -1,0 +1,22 @@
+{
+  "name": "htlc",
+  "version": "1.0.0",
+  "description": "### 主要命令",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/billchen-818/htlc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/billchen-818/htlc/issues"
+  },
+  "homepage": "https://github.com/billchen-818/htlc#readme",
+  "devDependencies": {
+    "web3": "^1.0.0-beta.37"
+  }
+}
