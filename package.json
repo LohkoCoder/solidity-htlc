@@ -4,7 +4,8 @@
   "description": "### 主要命令",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "inittsc": "node_modules/.bin/tsc --init",
+    "test": "node_modules/.bin/ts-node src/service/testWF.ts"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,9 @@
   },
   "homepage": "https://github.com/billchen-818/htlc#readme",
   "devDependencies": {
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3",
     "web3": "^1.0.0-beta.37"
-  }
+  },
+  "dependencies": {}
 }
