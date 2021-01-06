@@ -4,7 +4,7 @@ import {
     withdraw,
     getTransaction,
     getTransactionFromBlock,
-    subscribeNewHTLCEvent,
+    queryNewHTLCEvent,
     getContract,
 } from '../utils/utils'
 
@@ -17,7 +17,7 @@ import {
 
 
 let hashLock = '0x904f7117d030132da8188f096267ba3278be54e982bf5510c8a493a64003d3bb'
-let expireTimestamp = '1609227329718'
+let expireTimestamp = '1679227329718'
 let preimage = "0x3131310000000000000000000000000000000000000000000000000000000000"
 
 function addTestWallet() {
@@ -25,9 +25,13 @@ function addTestWallet() {
     addWallet(privateKey2,address2)
 }
 
+var contractId:any
 async function lockEth() {
     let res = await newContract(address2, hashLock, expireTimestamp, '30000', address1)
     console.log(res)
+    let blockNum = res.blockNumber
+    console.log(blockNum)
+    await newHTLCEvent(blockNum, blockNum)
 }
 
 async function getTx() {
@@ -37,16 +41,13 @@ async function getTx() {
     console.log(res)
 }
 
-async function newHTLCEvent() {
-    let res = await subscribeNewHTLCEvent(address1, address2)
-    // console.log(res)
-    console.log("----------------------------------")
-    console.log(res)
-    console.log("----------------------------------res[0]")
-    console.log(res.arguments)
+async function newHTLCEvent(fromBlock:string|number, toBlock:string|number) {
+    let res = await queryNewHTLCEvent(fromBlock, toBlock)
+    contractId = res[0].returnValues.contractId
+    console.log("contractId:"+contractId)
 }
 
-let contractId = "0x4a77fabad0e64ebb431c352a71350f32f87b43cfbbd17188aff9de068bab38b3"
+
 async function getTestContract() {
     let res = await getContract(contractId, address1)
     console.log(res)
@@ -60,10 +61,10 @@ async function withdrawEth() {
 }
 
 
+async function workFlow() {
+    await lockEth()
+    await withdrawEth()
+    await getTestContract()
+}
 
-// addTestWallet()
-// lockEth()
-// getTx()
-// newHTLCEvent()
-getTestContract()
-// withdrawEth()
+workFlow()
