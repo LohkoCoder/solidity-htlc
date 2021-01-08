@@ -58,7 +58,7 @@ async function getTestContract() {
 async function withdrawEth() {
     addWallet(privateKey2,address2)
     let res = await withdraw(htlcId, preimage, address2)
-    console.log("-----withdraw result------")
+    console.log("------withdraw result------")
     console.log(res)
 }
 
