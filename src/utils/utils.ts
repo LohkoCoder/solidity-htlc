@@ -1,4 +1,4 @@
-import {htlcAbi, htlcAddress} from './htlcContractInfo'
+import {htlcAbi, htlcAddress, contractAAbi, contractAAddress, contractBAbi, contractBAddress} from './htlcContractInfo'
 import {node1} from './nodeList'
 import { address1,address2,address3,privateKey1,privateKey2,privateKey3 } from "./accountList"
 
@@ -110,6 +110,43 @@ async function getTransactionFromBlock(txHash:string, blockNum:number) {
 	}
 }
 
+var contractA = new web3.eth.Contract(contractAAbi, contractAAddress)
+async function alterA(txSender: string, num:string) { 
+	try {
+		return await contractA.methods.alterA(num).send({
+			from: txSender,
+			gas: 150000,
+			gasPrice: '30000',
+			value: 0
+		})
+	} catch (error) {
+		return error
+	}
+}
+
+async function getA(sender:string) {
+	try {
+		return await contractA.methods.getA().call({from: sender})
+	} catch (error) {
+		return error
+	}
+}
+
+var contractB = new web3.eth.Contract(contractBAbi, contractBAddress)
+async function alterA2(txSender: string, num:string) { 
+	try {
+		return await contractB.methods.alterA(contractAAddress, num).send({
+			from: txSender,
+			gas: 1500000,
+			gasPrice: '300',
+			value: 0
+		})
+	} catch (error) {
+		return error
+	}
+}
+
+
 export {
 	addWallet,
 	newContract,
@@ -118,4 +155,7 @@ export {
 	getTransactionFromBlock,
 	queryNewHTLCEvent,
 	getContract,
+	getA,
+	alterA,
+	alterA2
 }

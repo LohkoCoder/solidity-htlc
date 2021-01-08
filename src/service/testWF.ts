@@ -6,6 +6,9 @@ import {
     getTransactionFromBlock,
     queryNewHTLCEvent,
     getContract,
+    getA,
+    alterA,
+    alterA2
 } from '../utils/utils'
 
 import {
@@ -35,10 +38,10 @@ async function lockEth() {
 }
 
 async function getTx() {
-    let res = await getTransactionFromBlock('0x66482e123d2f853b8f48f8cb893382d597e8f93e1e38e4270d7aa8f838f1d469', 3321)
-    console.log(res)
-    res = await getTransaction('0x66482e123d2f853b8f48f8cb893382d597e8f93e1e38e4270d7aa8f838f1d469')
-    console.log(res)
+    // let res = await getTransactionFromBlock('0x66482e123d2f853b8f48f8cb893382d597e8f93e1e38e4270d7aa8f838f1d469', 3321)
+    // console.log(res)
+    let res2 = await getTransaction('0x4d2da9ad0e86648ff4d34eb7058ef77b3e4cf6eaa0e9765eb827a2f3ad9325c6')
+    console.log(res2)
 }
 
 async function newHTLCEvent(fromBlock:string|number, toBlock:string|number) {
@@ -67,4 +70,20 @@ async function workFlow() {
     await getTestContract()
 }
 
-workFlow()
+async function testGetA() { 
+    // let res = await alterA(address1, "123")
+    // console.log(res.events.amountVal.returnValues)
+    let res2 = await getA(address1)
+    console.log("a value: " + res2)
+}
+
+async function testAlterA2() { 
+    // let res = await alterA(address1, "123")
+    // console.log(res.events.amountVal.returnValues)
+    let res2 = await alterA2(address1, "113")
+    console.log(res2)
+}
+// workFlow()
+// testAlterA2()
+testGetA()
+// getTx()
