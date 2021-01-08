@@ -1,4 +1,4 @@
-import {htlcAbi, htlcAddress, contractAAbi, contractAAddress, contractBAbi, contractBAddress} from './htlcContractInfo'
+import {htlcAbi, htlcAddress} from './htlcContractInfo'
 import {node1} from './nodeList'
 import { address1,address2,address3,privateKey1,privateKey2,privateKey3 } from "./accountList"
 
@@ -43,7 +43,7 @@ function addWallet(privateKey:string, address:string) {
 var myContract = new web3.eth.Contract(htlcAbi, htlcAddress)
 async function newContract(receiver:string, hashLock:string, timestamp:string, ethAmount:string, txSender:string) {
 	try {
-		return await myContract.methods.newContract(receiver,hashLock,timestamp).send({
+		return await myContract.methods.newHTLC(receiver,hashLock,timestamp).send({
 			from: txSender,
 			gas: 150000,
 			gasPrice: '30000',
@@ -54,9 +54,9 @@ async function newContract(receiver:string, hashLock:string, timestamp:string, e
 	}
 }
 
-async function withdraw(contractId:string, preimage:string, txSender:string) {
+async function withdraw(htlcId:string, preimage:string, txSender:string) {
 	try {
-		return await myContract.methods.withdraw(contractId,preimage).send({
+		return await myContract.methods.withdraw(htlcId,preimage).send({
 			from: txSender,
 			gas: 150000,
 			gasPrice: '30000',
@@ -86,9 +86,9 @@ async function queryNewHTLCEvent(_fromBlock:number|string, _toBlock:number|strin
 	}
 }
 
-async function getContract(contractId:string, sender:string) {
+async function getContract(htlcId:string, sender:string) {
 	try {
-		return await myContract.methods.getContract(contractId).call({from: sender})
+		return await myContract.methods.getContract(htlcId).call({from: sender})
 	} catch (error) {
 		return error
 	}
@@ -110,41 +110,7 @@ async function getTransactionFromBlock(txHash:string, blockNum:number) {
 	}
 }
 
-var contractA = new web3.eth.Contract(contractAAbi, contractAAddress)
-async function alterA(txSender: string, num:string) { 
-	try {
-		return await contractA.methods.alterA(num).send({
-			from: txSender,
-			gas: 150000,
-			gasPrice: '30000',
-			value: 0
-		})
-	} catch (error) {
-		return error
-	}
-}
 
-async function getA(sender:string) {
-	try {
-		return await contractA.methods.getA().call({from: sender})
-	} catch (error) {
-		return error
-	}
-}
-
-var contractB = new web3.eth.Contract(contractBAbi, contractBAddress)
-async function alterA2(txSender: string, num:string) { 
-	try {
-		return await contractB.methods.alterA(contractAAddress, num).send({
-			from: txSender,
-			gas: 1500000,
-			gasPrice: '300',
-			value: 0
-		})
-	} catch (error) {
-		return error
-	}
-}
 
 
 export {
@@ -155,7 +121,4 @@ export {
 	getTransactionFromBlock,
 	queryNewHTLCEvent,
 	getContract,
-	getA,
-	alterA,
-	alterA2
 }

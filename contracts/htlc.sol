@@ -10,9 +10,9 @@ pragma solidity ^0.5.0;
  *
  * Protocol:
  *
- *  1) newContract(receiver, hashlock, timelock) - a sender calls this to create
+ *  1) newHTLC(receiver, hashlock, timelock) - a sender calls this to create
  *      a new HTLC and gets back a 32 byte contract id
- *  2) withdraw(contractId, preimage) - once the receiver knows the preimage of
+ *  2) withdraw(htlcId, preimage) - once the receiver knows the preimage of
  *      the hashlock hash they can claim the ETH with this function
  *  3) refund() - after timelock has expired and if the receiver did not
  *      withdraw funds the sender / creator of the HTLC can get their ETH
@@ -21,15 +21,15 @@ pragma solidity ^0.5.0;
 contract HashedTimelock {
 
     event LogHTLCNew(
-        bytes32 indexed contractId,
+        bytes32 indexed htlcId,
         address indexed sender,
         address indexed receiver,
         uint amount,
         bytes32 hashlock,
         uint timelock
     );
-    event LogHTLCWithdraw(bytes32 indexed contractId);
-    event LogHTLCRefund(bytes32 indexed contractId);
+    event LogHTLCWithdraw(bytes32 indexed htlcId);
+    event LogHTLCRefund(bytes32 indexed htlcId);
 
     struct LockContract {
         address payable sender;
@@ -53,28 +53,28 @@ contract HashedTimelock {
         require(_time > now, "timelock time must be in the future");
         _;
     }
-    modifier contractExists(bytes32 _contractId) {
-        require(haveContract(_contractId), "contractId does not exist");
+    modifier contractExists(bytes32 _htlcId) {
+        require(haveContract(_htlcId), "htlcId does not exist");
         _;
     }
-    modifier hashlockMatches(bytes32 _contractId, bytes32 _x) {
+    modifier hashlockMatches(bytes32 _htlcId, bytes32 _x) {
         require(
-            contracts[_contractId].hashlock == sha256(abi.encodePacked(_x)),
+            contracts[_htlcId].hashlock == sha256(abi.encodePacked(_x)),
             "hashlock hash does not match"
         );
         _;
     }
-    modifier withdrawable(bytes32 _contractId) {
-        require(contracts[_contractId].receiver == msg.sender, "withdrawable: not receiver");
-        require(contracts[_contractId].withdrawn == false, "withdrawable: already withdrawn");
-        require(contracts[_contractId].timelock > now, "withdrawable: timelock time must be in the future");
+    modifier withdrawable(bytes32 _htlcId) {
+        require(contracts[_htlcId].receiver == msg.sender, "withdrawable: not receiver");
+        require(contracts[_htlcId].withdrawn == false, "withdrawable: already withdrawn");
+        require(contracts[_htlcId].timelock > now, "withdrawable: timelock time must be in the future");
         _;
     }
-    modifier refundable(bytes32 _contractId) {
-        require(contracts[_contractId].sender == msg.sender, "refundable: not sender");
-        require(contracts[_contractId].refunded == false, "refundable: already refunded");
-        require(contracts[_contractId].withdrawn == false, "refundable: already withdrawn");
-        require(contracts[_contractId].timelock <= now, "refundable: timelock not yet passed");
+    modifier refundable(bytes32 _htlcId) {
+        require(contracts[_htlcId].sender == msg.sender, "refundable: not sender");
+        require(contracts[_htlcId].refunded == false, "refundable: already refunded");
+        require(contracts[_htlcId].withdrawn == false, "refundable: already withdrawn");
+        require(contracts[_htlcId].timelock <= now, "refundable: timelock not yet passed");
         _;
     }
 
@@ -88,17 +88,17 @@ contract HashedTimelock {
      * @param _hashlock A sha-2 sha256 hash hashlock.
      * @param _timelock UNIX epoch seconds time that the lock expires at.
      *                  Refunds can be made after this time.
-     * @return contractId Id of the new HTLC. This is needed for subsequent
+     * @return htlcId Id of the new HTLC. This is needed for subsequent
      *                    calls.
      */
-    function newContract(address payable _receiver, bytes32 _hashlock, uint _timelock)
+    function newHTLC(address payable _receiver, bytes32 _hashlock, uint _timelock)
         external
         payable
         fundsSent
         futureTimelock(_timelock)
-        returns (bytes32 contractId)
+        returns (bytes32 htlcId)
     {
-        contractId = sha256(
+        htlcId = sha256(
             abi.encodePacked(
                 msg.sender,
                 _receiver,
@@ -111,10 +111,10 @@ contract HashedTimelock {
         // Reject if a contract already exists with the same parameters. The
         // sender must change one of these parameters to create a new distinct
         // contract.
-        if (haveContract(contractId))
+        if (haveContract(htlcId))
             revert("Contract already exists");
 
-        contracts[contractId] = LockContract(
+        contracts[htlcId] = LockContract(
             msg.sender,
             _receiver,
             msg.value,
@@ -126,7 +126,7 @@ contract HashedTimelock {
         );
 
         emit LogHTLCNew(
-            contractId,
+            htlcId,
             msg.sender,
             _receiver,
             msg.value,
@@ -139,22 +139,22 @@ contract HashedTimelock {
      * @dev Called by the receiver once they know the preimage of the hashlock.
      * This will transfer the locked funds to their address.
      *
-     * @param _contractId Id of the HTLC.
+     * @param _htlcId Id of the HTLC.
      * @param _preimage sha256(_preimage) should equal the contract hashlock.
      * @return bool true on success
      */
-    function withdraw(bytes32 _contractId, bytes32 _preimage)
+    function withdraw(bytes32 _htlcId, bytes32 _preimage)
         external
-        contractExists(_contractId)
-        hashlockMatches(_contractId, _preimage)
-        withdrawable(_contractId)
+        contractExists(_htlcId)
+        hashlockMatches(_htlcId, _preimage)
+        withdrawable(_htlcId)
         returns (bool)
     {
-        LockContract storage c = contracts[_contractId];
+        LockContract storage c = contracts[_htlcId];
         c.preimage = _preimage;
         c.withdrawn = true;
         c.receiver.transfer(c.amount);
-        emit LogHTLCWithdraw(_contractId);
+        emit LogHTLCWithdraw(_htlcId);
         return true;
     }
 
@@ -162,28 +162,28 @@ contract HashedTimelock {
      * @dev Called by the sender if there was no withdraw AND the time lock has
      * expired. This will refund the contract amount.
      *
-     * @param _contractId Id of HTLC to refund from.
+     * @param _htlcId Id of HTLC to refund from.
      * @return bool true on success
      */
-    function refund(bytes32 _contractId)
+    function refund(bytes32 _htlcId)
         external
-        contractExists(_contractId)
-        refundable(_contractId)
+        contractExists(_htlcId)
+        refundable(_htlcId)
         returns (bool)
     {
-        LockContract storage c = contracts[_contractId];
+        LockContract storage c = contracts[_htlcId];
         c.refunded = true;
         c.sender.transfer(c.amount);
-        emit LogHTLCRefund(_contractId);
+        emit LogHTLCRefund(_htlcId);
         return true;
     }
 
     /**
      * @dev Get contract details.
-     * @param _contractId HTLC contract id
-     * @return All parameters in struct LockContract for _contractId HTLC
+     * @param _htlcId HTLC contract id
+     * @return All parameters in struct LockContract for _htlcId HTLC
      */
-    function getContract(bytes32 _contractId)
+    function getContract(bytes32 _htlcId)
         public
         view
         returns (
@@ -197,9 +197,9 @@ contract HashedTimelock {
             bytes32 preimage
         )
     {
-        if (haveContract(_contractId) == false)
+        if (haveContract(_htlcId) == false)
             return (address(0), address(0), 0, 0, 0, false, false, 0);
-        LockContract storage c = contracts[_contractId];
+        LockContract storage c = contracts[_htlcId];
         return (
             c.sender,
             c.receiver,
@@ -213,15 +213,15 @@ contract HashedTimelock {
     }
 
     /**
-     * @dev Is there a contract with id _contractId.
-     * @param _contractId Id into contracts mapping.
+     * @dev Is there a contract with id _htlcId.
+     * @param _htlcId Id into contracts mapping.
      */
-    function haveContract(bytes32 _contractId)
+    function haveContract(bytes32 _htlcId)
         internal
         view
         returns (bool exists)
     {
-        exists = (contracts[_contractId].sender != address(0));
+        exists = (contracts[_htlcId].sender != address(0));
     }
 
 }

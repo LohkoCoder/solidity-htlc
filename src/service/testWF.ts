@@ -6,9 +6,6 @@ import {
     getTransactionFromBlock,
     queryNewHTLCEvent,
     getContract,
-    getA,
-    alterA,
-    alterA2
 } from '../utils/utils'
 
 import {
@@ -28,9 +25,10 @@ function addTestWallet() {
     addWallet(privateKey2,address2)
 }
 
-var contractId:any
+var htlcId:any
 async function lockEth() {
     let res = await newContract(address2, hashLock, expireTimestamp, '30000', address1)
+    console.log("------lock asset result------")
     console.log(res)
     let blockNum = res.blockNumber
     console.log(blockNum)
@@ -46,20 +44,21 @@ async function getTx() {
 
 async function newHTLCEvent(fromBlock:string|number, toBlock:string|number) {
     let res = await queryNewHTLCEvent(fromBlock, toBlock)
-    contractId = res[0].returnValues.contractId
-    console.log("contractId:"+contractId)
+    htlcId = res[0].returnValues.htlcId
+    console.log("htlcId is:"+htlcId)
 }
 
 
 async function getTestContract() {
-    let res = await getContract(contractId, address1)
+    let res = await getContract(htlcId, address1)
     console.log(res)
 }
 
 
 async function withdrawEth() {
     addWallet(privateKey2,address2)
-    let res = await withdraw(contractId, preimage, address2)
+    let res = await withdraw(htlcId, preimage, address2)
+    console.log("-----withdraw result------")
     console.log(res)
 }
 
@@ -70,20 +69,5 @@ async function workFlow() {
     await getTestContract()
 }
 
-async function testGetA() { 
-    // let res = await alterA(address1, "123")
-    // console.log(res.events.amountVal.returnValues)
-    let res2 = await getA(address1)
-    console.log("a value: " + res2)
-}
-
-async function testAlterA2() { 
-    // let res = await alterA(address1, "123")
-    // console.log(res.events.amountVal.returnValues)
-    let res2 = await alterA2(address1, "113")
-    console.log(res2)
-}
-// workFlow()
-// testAlterA2()
-testGetA()
+workFlow()
 // getTx()
