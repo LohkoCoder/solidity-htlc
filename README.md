@@ -1,3 +1,45 @@
+# 搭建以太坊网络
+
+* 配置创始块
+```
+{
+  "config": {
+    "chainId": 666,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "istanbulBlock": 0,
+    "ethash": {}
+  },
+  "nonce": "0x0",
+  "timestamp": "0x5ddf8f3e",
+  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "0x47b760",
+  "difficulty": "0x00002",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": { },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}
+```
+
+* 生成数据存储目录
+```
+// geth节点程序位于本项目/bin目录下
+./bin/geth --datadir data0 init genesis.json 
+```
+
+* 启动节点
+```
+./bin/geth --rpc --rpcport "8545" --rpccorsdomain "*" --datadir "./data0" --port "30303"  --networkid 100000  --allow-insecure-unlock console
+```
 # Solidity 哈希时间锁定合约流程 
 
 ## 发送者锁定资产
